@@ -6,6 +6,7 @@ package service;
 
 import entities.MyFlight;
 import entities.MyUser;
+import entities.Route;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -67,7 +68,7 @@ public class MyFlightFacadeREST extends AbstractFacade<MyFlight> {
     @GET
     @Path("find_flight_by_itinerary/{fromAirport}/{toAirport}/{token}")
     @Produces({"application/xml", "application/json"})
-    public ArrayList<MyFlight> find_flight_by_itinerary(@PathParam("fromAirport") String fromAirport,
+    public Route find_flight_by_itinerary(@PathParam("fromAirport") String fromAirport,
             @PathParam("toAirport") String toAirport, @PathParam("token") String token) {
         
         ArrayList<MyFlight> list = new ArrayList<MyFlight>();
@@ -77,7 +78,8 @@ public class MyFlightFacadeREST extends AbstractFacade<MyFlight> {
                 list.add(f);
             }
         }
-        return list;
+        return new Route();
+        //return list;
     }
 
     @GET

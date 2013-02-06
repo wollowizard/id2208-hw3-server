@@ -71,15 +71,16 @@ public class MyFlightFacadeREST extends AbstractFacade<MyFlight> {
     public Route find_flight_by_itinerary(@PathParam("fromAirport") String fromAirport,
             @PathParam("toAirport") String toAirport, @PathParam("token") String token) {
         
-        ArrayList<MyFlight> list = new ArrayList<MyFlight>();
-        List<MyFlight> flights = super.findAll();
-        for (MyFlight f : flights) {
-            if (f.getFromAirport().equals(fromAirport) && f.getToAirport().equals(toAirport)) {
-                list.add(f);
-            }
+        /*if(!checkToken(token)){
+            throw new WebServiceException("Authentication failed. Invalid Token");
+        }*/
+        ArrayList<Route> list;
+        Route r = getDirectFlights(fromAirport, toAirport);
+        if(r==null){
+            r = getIndirectFlights(fromAirport, toAirport);
         }
-        return new Route();
-        //return list;
+        return r;
+
     }
 
     @GET
@@ -151,4 +152,83 @@ public class MyFlightFacadeREST extends AbstractFacade<MyFlight> {
         valid = !resultList.isEmpty();
         return valid;
     }
+    
+    private Route getDirectFlights(String from, String to) {
+        ArrayList<MyFlight> itinerary=new ArrayList<MyFlight>();
+        Route r=null;
+        //ArrayList<Route> list = new ArrayList<Route>();
+        for (MyFlight flight : super.findAll()) {
+            if (flight.getFromAirport().equals(from) && flight.getToAirport().equals(to)) {
+                itinerary.add(flight);
+                //Route r = new Route(itinerary);
+                r = new Route(itinerary);
+                break;
+            }
+        }
+        return r;
+    }
+
+    private Route getIndirectFlights(String from, String to) {
+        ArrayList<MyFlight> itinerary;
+        Route r=null;
+        for (MyFlight flight1 : super.findAll()) {
+            if (flight1.getFromAirport().equals(from)) {
+                String through = flight1.getToAirport();
+                for (MyFlight flight2 : super.findAll()) {
+                    if (flight2.getToAirport().equals(to) && flight2.getFromAirport().equals(through)) {
+                        itinerary=new ArrayList<MyFlight>();
+                        itinerary.add(flight1);
+                        itinerary.add(flight2);
+                        //Route r = new Route();
+                        r = new Route(itinerary);
+                        break;
+                    }
+                }
+                
+            }
+        }
+        return r;
+    }
+    /*
+     private ArrayList<Route> getDirectFlights(String from, String to) {
+        //FlightsList itinerary = new FlightsList();
+        ArrayList<MyFlight> itinerary=new ArrayList<MyFlight>();
+        ArrayList<Route> list = new ArrayList<Route>();
+        for (MyFlight flight : super.findAll()) {
+            if (flight.getFromAirport().equals(from) && flight.getToAirport().equals(to)) {
+                itinerary.add(flight);
+                //Route r = new Route(itinerary);
+                Route r = new Route();
+                list.add(r);
+            }
+        }
+        return list;
+    }
+
+    private ArrayList<Route> getIndirectFlights(String from, String to) {
+        ArrayList<MyFlight> itinerary=new ArrayList<MyFlight>();
+        ArrayList<Route> list = new ArrayList<Route>();
+
+        for (MyFlight flight1 : super.findAll()) {
+            if (flight1.getFromAirport().equals(from)) {
+                String through = flight1.getToAirport();
+                for (MyFlight flight2 : super.findAll()) {
+                    if (flight2.getToAirport().equals(to) && flight2.getFromAirport().equals(through)) {
+                        itinerary=new ArrayList<MyFlight>();
+                        itinerary.add(flight1);
+                        itinerary.add(flight2);
+                        //Route r = new Route();
+                        Route r = new Route();
+                        list.add(r);
+                    }
+                }
+                
+            }
+        }
+        return list;
+    } 
+    
+     
+     */
+
 }

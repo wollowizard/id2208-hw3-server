@@ -21,6 +21,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.xml.ws.WebServiceException;
 
 /**
  *
@@ -53,8 +54,11 @@ public class MyUserFacadeREST extends AbstractFacade<MyUser> {
     public String authentication(@PathParam("id") String id,@PathParam("password") String password) {
         MyUser myUser = super.find(id);
         String authentication="Authentication failed";
-        Query q = em.createQuery("SELECT u FROM MyUser u WHERE u.id = 'gerard'");
+        Query q = em.createQuery("SELECT u FROM MyUser u WHERE u.id = '"+id+"'");
         List resultList = q.getResultList();
+        if(resultList.isEmpty()){
+            throw new WebServiceException("Authentication failed");
+        }
         MyUser u = (MyUser) resultList.get(0);
         authentication = u.getId();
         if(myUser!=null){
@@ -65,7 +69,7 @@ public class MyUserFacadeREST extends AbstractFacade<MyUser> {
             }
         }
         else{
-            //throw new NotFoundException("EXCEPTION");
+            throw new WebServiceException("Authentication failed");
         }
         return authentication;
     }

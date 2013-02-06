@@ -86,9 +86,9 @@ public class MyFlightFacadeREST extends AbstractFacade<MyFlight> {
     }
 
     @GET
-    @Path("aaa/{ids}/{cards}/{token}")
+    @Path("getTicket/{ids}/{cards}/{token}")
     @Produces({"application/xml", "application/json"})
-    public Ticket aaa(@PathParam("ids") String ids,@PathParam("cards") String cards, @PathParam("token") String token) {
+    public Ticket getTicket(@PathParam("ids") String ids,@PathParam("cards") String cards, @PathParam("token") String token) {
         
         if(!checkToken(token)){
             throw new WebServiceException("Authentication failed. Invalid Token");

@@ -7,7 +7,6 @@ package service;
 import entities.MyUser;
 import java.util.List;
 import java.util.UUID;
-import javassist.NotFoundException;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;

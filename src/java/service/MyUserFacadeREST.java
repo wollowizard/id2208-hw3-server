@@ -65,6 +65,8 @@ public class MyUserFacadeREST extends AbstractFacade<MyUser> {
                 String token = UUID.randomUUID().toString();
                 myUser.setToken(token);
                 authentication=token;
+            }else{
+                throw new WebServiceException("Authentication failed");
             }
         }
         else{

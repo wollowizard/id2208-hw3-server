@@ -7,6 +7,7 @@ package service;
 import entities.MyFlight;
 import entities.MyUser;
 import entities.Route;
+import entities.Ticket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -70,7 +71,7 @@ public class MyFlightFacadeREST extends AbstractFacade<MyFlight> {
     @Produces({"application/xml", "application/json"})
     public Route find_flight_by_itinerary(@PathParam("fromAirport") String fromAirport,
             @PathParam("toAirport") String toAirport, @PathParam("token") String token) {
-        
+
         ArrayList<MyFlight> list = new ArrayList<MyFlight>();
         List<MyFlight> flights = super.findAll();
         for (MyFlight f : flights) {
@@ -78,8 +79,39 @@ public class MyFlightFacadeREST extends AbstractFacade<MyFlight> {
                 list.add(f);
             }
         }
+
         return new Route();
         //return list;
+    }
+
+    @GET
+    @Path("aaa/{ids}/{cards}/{token}")
+    @Produces({"application/xml", "application/json"})
+    public Ticket aaa(@PathParam("ids") String ids,@PathParam("cards") String cards, @PathParam("token") String token) {
+        
+        if(!checkToken(token)){
+            throw new WebServiceException("Authentication failed. Invalid Token");
+        }
+        
+        String x = ids;
+        String[] split = x.split(";");
+      
+        ArrayList<MyFlight> name = new ArrayList<MyFlight>();
+
+        Double tot=0.0;
+        for (int i = 0; i < split.length; i++) {
+            MyFlight find = null;
+            find = super.find(Integer.parseInt(split[i]));
+            if (find != null) {
+                name.add(find);
+                tot+=find.getPrice();
+            }
+        }
+        Route route = new Route(name);
+
+        return new Ticket(route, tot,cards);
+
+
     }
 
     @GET
@@ -88,9 +120,9 @@ public class MyFlightFacadeREST extends AbstractFacade<MyFlight> {
     public String authentication(@PathParam("id") String id, @PathParam("password") String password) {
         String authentication = "";
         String token = "adf29b96-d74f-42da-99d5-91ac9d7930b2";
-        Query q = em.createQuery("SELECT u FROM MyUser u WHERE u.token = '"+token+"'");
+        Query q = em.createQuery("SELECT u FROM MyUser u WHERE u.token = '" + token + "'");
         List resultList = q.getResultList();
-        if(resultList.isEmpty()){
+        if (resultList.isEmpty()) {
             throw new WebServiceException("Authentication failed. Invalid Token");
         }
         MyUser u = (MyUser) resultList.get(0);
@@ -146,7 +178,7 @@ public class MyFlightFacadeREST extends AbstractFacade<MyFlight> {
 
     private boolean checkToken(String token) {
         boolean valid;
-        Query q = em.createQuery("SELECT u FROM MyUser u WHERE u.token = '"+token+"'");
+        Query q = em.createQuery("SELECT u FROM MyUser u WHERE u.token = '" + token + "'");
         List resultList = q.getResultList();
         valid = !resultList.isEmpty();
         return valid;

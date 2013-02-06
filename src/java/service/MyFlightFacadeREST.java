@@ -5,11 +5,14 @@
 package service;
 
 import entities.MyFlight;
+import entities.MyUser;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -18,6 +21,8 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.xml.ws.WebServiceException;
 
 /**
  *
@@ -26,6 +31,7 @@ import javax.ws.rs.Produces;
 @Stateless
 @Path("entities.myflight")
 public class MyFlightFacadeREST extends AbstractFacade<MyFlight> {
+
     @PersistenceContext(unitName = "hw3-serverPU")
     private EntityManager em;
 
@@ -36,7 +42,7 @@ public class MyFlightFacadeREST extends AbstractFacade<MyFlight> {
     @PUT
     @Path("add_new_flight/{fromAirport}/{toAirport}/{flightDate}/{price}/{places}")
     public void add_new_flight(@PathParam("fromAirport") String fromAirport, @PathParam("toAirport") String toAirport,
-    @PathParam("flightDate") String date, @PathParam("price") String price, @PathParam("places") String places) {
+            @PathParam("flightDate") String date, @PathParam("price") String price, @PathParam("places") String places) {
         MyFlight f = new MyFlight();
         double p = Double.parseDouble(price);
         int freePlaces = Integer.parseInt(places);
@@ -50,29 +56,46 @@ public class MyFlightFacadeREST extends AbstractFacade<MyFlight> {
         //PUT MIME:application/xml
         //PUT MIME:text/xml
     }
-    
+
     @GET
     @Path("{id}")
     @Produces({"application/xml", "application/json"})
     public MyFlight find(@PathParam("id") Integer id) {
         return super.find(id);
     }
-    
+
     @GET
-    @Path("find_flight_by_itinerary/{fromAirport}/{toAirport}")
+    @Path("find_flight_by_itinerary/{fromAirport}/{toAirport}/{token}")
     @Produces({"application/xml", "application/json"})
-    public ArrayList<MyFlight> find_flight_by_itinerary(@PathParam("fromAirport") String fromAirport, 
-    @PathParam("toAirport") String toAirport) {
+    public ArrayList<MyFlight> find_flight_by_itinerary(@PathParam("fromAirport") String fromAirport,
+            @PathParam("toAirport") String toAirport, @PathParam("token") String token) {
+        
         ArrayList<MyFlight> list = new ArrayList<MyFlight>();
         List<MyFlight> flights = super.findAll();
-        for(MyFlight f : flights){
-            if(f.getFromAirport().equals(fromAirport) && f.getToAirport().equals(toAirport)){
+        for (MyFlight f : flights) {
+            if (f.getFromAirport().equals(fromAirport) && f.getToAirport().equals(toAirport)) {
                 list.add(f);
             }
         }
         return list;
     }
-    
+
+    @GET
+    @Path("authentication/{id}/{password}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String authentication(@PathParam("id") String id, @PathParam("password") String password) {
+        String authentication = "";
+        String token = "adf29b96-d74f-42da-99d5-91ac9d7930b2";
+        Query q = em.createQuery("SELECT u FROM MyUser u WHERE u.token = '"+token+"'");
+        List resultList = q.getResultList();
+        if(resultList.isEmpty()){
+            throw new WebServiceException("Authentication failed. Invalid Token");
+        }
+        MyUser u = (MyUser) resultList.get(0);
+        authentication = u.getId() + " " + u.getToken() + " " + u.getPassword();
+        return authentication;
+    }
+
     @POST
     @Override
     @Consumes({"application/xml", "application/json"})
@@ -118,5 +141,12 @@ public class MyFlightFacadeREST extends AbstractFacade<MyFlight> {
     protected EntityManager getEntityManager() {
         return em;
     }
-    
+
+    private boolean checkToken(String token) {
+        boolean valid;
+        Query q = em.createQuery("SELECT u FROM MyUser u WHERE u.token = '"+token+"'");
+        List resultList = q.getResultList();
+        valid = !resultList.isEmpty();
+        return valid;
+    }
 }

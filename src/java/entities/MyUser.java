@@ -23,6 +23,7 @@ public class MyUser implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private String id;
     private String password;
+    private String token;
 
     public String getId() {
         return id;
@@ -40,6 +41,13 @@ public class MyUser implements Serializable {
         this.password = password;
     }
 
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }    
     
     @Override
     public int hashCode() {

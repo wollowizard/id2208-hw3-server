@@ -6,9 +6,12 @@ package service;
 
 import entities.MyUser;
 import java.util.List;
+import java.util.UUID;
+import javassist.NotFoundException;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -49,11 +52,20 @@ public class MyUserFacadeREST extends AbstractFacade<MyUser> {
     @Produces(MediaType.TEXT_PLAIN)
     public String authentication(@PathParam("id") String id,@PathParam("password") String password) {
         MyUser myUser = super.find(id);
-        String authentication="Authentication fialed";
+        String authentication="Authentication failed";
+        Query q = em.createQuery("SELECT u FROM MyUser u WHERE u.id = 'gerard'");
+        List resultList = q.getResultList();
+        MyUser u = (MyUser) resultList.get(0);
+        authentication = u.getId();
         if(myUser!=null){
             if(myUser.getPassword().equals(password)){
-                authentication="Authentication successful";
+                String token = UUID.randomUUID().toString();
+                myUser.setToken(token);
+                authentication=token;
             }
+        }
+        else{
+            //throw new NotFoundException("EXCEPTION");
         }
         return authentication;
     }
@@ -113,8 +125,10 @@ public class MyUserFacadeREST extends AbstractFacade<MyUser> {
         return String.valueOf(super.count());
     }
 
+    
     @Override
-    protected EntityManager getEntityManager() {
+    public EntityManager getEntityManager() {
         return em;
     }
+    
 }

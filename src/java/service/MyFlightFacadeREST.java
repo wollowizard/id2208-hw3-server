@@ -67,22 +67,21 @@ public class MyFlightFacadeREST extends AbstractFacade<MyFlight> {
     }
 
     @GET
-    @Path("find_flight_by_itinerary/{fromAirport}/{toAirport}/{token}")
+    @Path("find_flight_by_itinerary/{fromAirport}/{toAirport}/{date}/{token}")
     @Produces({"application/xml", "application/json"})
     public Route find_flight_by_itinerary(@PathParam("fromAirport") String fromAirport,
-            @PathParam("toAirport") String toAirport, @PathParam("token") String token) {
+            @PathParam("toAirport") String toAirport, @PathParam("date") String date, @PathParam("token") String token) {
         
-        /*if(!checkToken(token)){
+        if(!checkToken(token)){
             throw new WebServiceException("Authentication failed. Invalid Token");
-        }*/
-        ArrayList<Route> list;
-        Route r = getDirectFlights(fromAirport, toAirport);
+        }
+      
+        Route r = getDirectFlights(fromAirport, toAirport,date);
         if(r==null){
-            r = getIndirectFlights(fromAirport, toAirport);
+            r = getIndirectFlights(fromAirport, toAirport,date);
         }
         return r;
-        
-        //return list;
+
     }
 
     @GET
@@ -183,12 +182,13 @@ public class MyFlightFacadeREST extends AbstractFacade<MyFlight> {
         return valid;
     }
     
-    private Route getDirectFlights(String from, String to) {
+    private Route getDirectFlights(String from, String to, String date) {
         ArrayList<MyFlight> itinerary=new ArrayList<MyFlight>();
         Route r=null;
         //ArrayList<Route> list = new ArrayList<Route>();
         for (MyFlight flight : super.findAll()) {
-            if (flight.getFromAirport().equals(from) && flight.getToAirport().equals(to)) {
+            if (flight.getFromAirport().equals(from) && flight.getToAirport().equals(to)
+                    && flight.getFlightDate().equals(date)) {
                 itinerary.add(flight);
                 //Route r = new Route(itinerary);
                 r = new Route(itinerary);
@@ -197,15 +197,16 @@ public class MyFlightFacadeREST extends AbstractFacade<MyFlight> {
         }
         return r;
     }
-
-    private Route getIndirectFlights(String from, String to) {
+ 
+    private Route getIndirectFlights(String from, String to, String date) {
         ArrayList<MyFlight> itinerary;
         Route r=null;
         for (MyFlight flight1 : super.findAll()) {
-            if (flight1.getFromAirport().equals(from)) {
+            if (flight1.getFromAirport().equals(from) && flight1.getFlightDate().equals(date)) {
                 String through = flight1.getToAirport();
                 for (MyFlight flight2 : super.findAll()) {
-                    if (flight2.getToAirport().equals(to) && flight2.getFromAirport().equals(through)) {
+                    if (flight2.getToAirport().equals(to) && flight2.getFromAirport().equals(through)
+                            && flight2.getFlightDate().equals(date)) {
                         itinerary=new ArrayList<MyFlight>();
                         itinerary.add(flight1);
                         itinerary.add(flight2);
@@ -214,7 +215,7 @@ public class MyFlightFacadeREST extends AbstractFacade<MyFlight> {
                         break;
                     }
                 }
-                
+               
             }
         }
         return r;
